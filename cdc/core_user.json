@@ -1,0 +1,15 @@
+{
+  "name": "users-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "plugin.name": "pgoutput",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "database.hostname": "backend-db",
+    "database.port": "5432",
+    "database.user": "postgres",
+    "database.password": "mypgpass",
+    "database.dbname": "app",
+    "database.server.name": "postgres",
+    "table.include.list": "public.users"
+  }
+}

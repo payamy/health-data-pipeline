@@ -1,0 +1,78 @@
+version: "3"
+
+services:
+
+  backend:
+    image: health-server:0.0.1
+    ports:
+      - "8080:8080"
+    command: >
+      sh -c "java -jar /server-0.0.1-SNAPSHOT.jar"
+    
+  backend-db:
+    image: postgres:10-alpine
+    environment:
+      - POSTGRES_DB=app
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mypgpass
+    ports:
+      - "5432:5432"
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+  volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:6.2
+    expose:
+      - 6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 50
+      start_period: 30s
+
+  cassandra:
+    image: bitnami/cassandra:4.0.6
+    environment:
+      - CASSANDRA_CLUSTER_NAME=cassandra-cluster
+      - CASSANDRA_HOST=cassandra
+      - CASSANDRA_SEEDS=cassandra,cassandra-2
+      - CASSANDRA_PASSWORD_SEEDER=yes
+      - CASSANDRA_USER=cassandra
+      - CASSANDRA_PASSWORD=password123
+      - MAX_HEAP_SIZE=1G
+      - HEAP_NEWSIZE=200M
+    ports:
+      - 7000:7000
+      - 9042:9042
+    volumes:
+      - cassandra:/bitnami
+
+  cassandra-2:
+    image: bitnami/cassandra:4.0.6
+    environment:
+      - CASSANDRA_CLUSTER_NAME=cassandra-cluster
+      - CASSANDRA_HOST=cassandra-2
+      - CASSANDRA_SEEDS=cassandra,cassandra-2
+      - CASSANDRA_USER=cassandra
+      - CASSANDRA_PASSWORD=password123
+      - MAX_HEAP_SIZE=1G
+      - HEAP_NEWSIZE=200M
+    ports:
+      - 7001:7000
+      - 9043:9042
+    volumes:
+      - cassandra_2:/bitnami
+
+
+volumes:
+  cassandra:
+    driver: local
+  cassandra_2:
+    driver: local
+  pg_data:
+    driver: local

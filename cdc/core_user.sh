@@ -1,0 +1,1 @@
+curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" debezium:8083/connectors/ -d @/cdc/core_user.json

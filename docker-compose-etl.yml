@@ -1,0 +1,94 @@
+version: '3'
+
+services:
+  spark-master:
+    image: docker.io/bitnami/spark:3.3.2
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    ports:
+      - 8082:8082
+    expose:
+      - '7077'
+    env_file:
+      - ./hadoop.env
+
+  spark-worker-1:
+    image: docker.io/bitnami/spark:3.3.2
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    env_file:
+      - ./hadoop.env
+
+  spark-worker-2:
+    image: docker.io/bitnami/spark:3.3.2
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    env_file:
+      - ./hadoop.env
+
+  spark-app:
+    image: spark-app:0.0.1
+    ports:
+      - 4040:4040
+    command: >
+      sh -c "spark-submit --master spark://spark-master:7077
+        --total-executor-cores 4
+        --driver-memory 1G
+        --executor-memory 2G
+        --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.2,
+        com.datastax.cassandra:cassandra-driver-core:3.11.3,
+        commons-configuration:commons-configuration:1.6,
+        io.delta:delta-core_2.12:2.3.0,
+        com.datastax.spark:spark-cassandra-connector_2.12:3.3.0,
+        com.codahale.metrics:metrics-core:3.0.2
+        --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" 
+        --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog"  
+        --class com.payamy.etl.Main etl-0.0.1.jar"
+    env_file:
+      - ./hadoop.env
+
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    ports:
+      - 9870:9870
+      - 9000:9000
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+    environment:
+      - CLUSTER_NAME=health-app
+    env_file:
+      - ./hadoop.env
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    volumes:
+      - hadoop_datanode:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+
+
+volumes:
+  hadoop_namenode:
+    driver: local
+  hadoop_datanode:
+    driver: local
