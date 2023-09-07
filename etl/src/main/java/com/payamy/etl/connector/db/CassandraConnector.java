@@ -16,12 +16,18 @@ public class CassandraConnector {
 
     private Integer port;
 
+    private String username;
+
+    private String password;
+
     private Integer replicationFactor;
 
     private void setConfig() throws ConfigurationException {
         ConfigManager configManager = ConfigManager.getInstance();
         node = configManager.getString("cassandra.node");
         port = configManager.getInt("cassandra.port");
+        username = configManager.getString("cassandra.username");
+        password = configManager.getString("cassandra.password");
         replicationFactor = configManager.getInt("cassandra.replicationFactor");
     }
 
@@ -30,6 +36,7 @@ public class CassandraConnector {
         if (port != null) {
             builder.withPort(port);
         }
+        builder.withCredentials(username, password);
         cluster = builder.build();
 
         session = cluster.connect();
