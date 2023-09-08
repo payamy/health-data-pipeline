@@ -148,7 +148,7 @@ public class StreamJob {
                             ).write()
                                     .format("org.apache.spark.sql.cassandra")
                                     .mode("append")
-                                    .option("keyspace", keyspace)
+                                    .option("keyspace", "stream_etl")
                                     .option("table", "health_by_user")
                                     .save();
                         }

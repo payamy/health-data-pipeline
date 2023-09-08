@@ -20,9 +20,9 @@ services:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9093,EXTERNAL://:9092
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,EXTERNAL://:9093
       - KAFKA_CFG_NUM_PARTITIONS=2
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9093,EXTERNAL://localhost:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9093
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
       - KAFKA_BROKER_ID=0
     depends_on:
@@ -31,7 +31,7 @@ services:
   debezium:
     image: debezium/connect:1.4
     environment:
-      - BOOTSTRAP_SERVERS=kafka:9093
+      - BOOTSTRAP_SERVERS=kafka:9092
       - GROUP_ID=1
       - CONFIG_STORAGE_TOPIC=connect_configs
       - OFFSET_STORAGE_TOPIC=connect_offsets
@@ -61,8 +61,9 @@ services:
       sh -c "source /cdc/core_user.sh"
     volumes:
       - ./cdc:/cdc
-    depends_on: 
+    depends_on:
       - debezium
+    restart: on-failure
 
 
 volumes:
